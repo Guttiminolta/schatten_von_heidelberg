@@ -6,6 +6,7 @@ const MAX_K = 2000;  // Wachen
 const MAX_C = 3000;  // Münzen
 const NAME_LEN = 14;
 const TOP = 10;
+const HEX = /^#[0-9a-f]{6}$/i;
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -20,6 +21,17 @@ const num = (v, max) => {
   const x = Math.floor(Number(v));
   return Number.isFinite(x) && x >= 0 && x <= max ? x : null;
 };
+
+// Bund: Flagge aus 3 Farben + Perkussion oben/unten
+const cleanFlag = (f) =>
+  Array.isArray(f) && f.length === 3 && f.every((c) => typeof c === "string" && HEX.test(c))
+    ? f.map((c) => c.toLowerCase())
+    : null;
+const okPerc = (v) => v === "none" || v === "gold" || v === "silver" || (typeof v === "string" && HEX.test(v));
+const cleanPerc = (p) => ({
+  t: okPerc(p?.t) ? p.t : "none",
+  b: okPerc(p?.b) ? p.b : "none",
+});
 
 const better = (a, b) => b.m - a.m || b.k - a.k || b.c - a.c;
 const keyOf = (name) => Buffer.from(name.toLowerCase()).toString("hex");
@@ -36,14 +48,14 @@ export async function handle(req, store) {
   if (req.method === "GET") {
     const all = await loadAll(store);
     return json({
-      top: all.slice(0, TOP).map(({ n, m, k, c }) => ({ n, m, k, c })),
+      top: all.slice(0, TOP).map(({ n, m, k, c, f, p }) => ({ n, m, k, c, f, p })),
       total: all.length,
     });
   }
 
   if (req.method === "POST") {
     const raw = await req.text();
-    if (raw.length > 1000) return json({ error: "too large" }, 413);
+    if (raw.length > 2000) return json({ error: "too large" }, 413);
     let b;
     try {
       b = JSON.parse(raw);
@@ -57,13 +69,18 @@ export async function handle(req, store) {
     if (!n || n.toLowerCase() === "anonym" || m === null || k === null || c === null) {
       return json({ error: "invalid" }, 400);
     }
+    const f = cleanFlag(b?.f);
+    const p = cleanPerc(b?.p);
 
     const key = keyOf(n);
     const old = await store.get(key, { type: "json" });
     let changed = false;
     if (!old || m > old.m) {
-      await store.setJSON(key, { n, m, k, c, t: Date.now() });
+      await store.setJSON(key, { n, m, k, c, f, p, t: Date.now() });
       changed = true;
+    } else if (f) {
+      // Rekord bleibt, aber der Bund (Flagge) darf sich ändern
+      await store.setJSON(key, { ...old, f, p });
     }
     const all = await loadAll(store);
     const i = all.findIndex((e) => e.n.toLowerCase() === n.toLowerCase());
