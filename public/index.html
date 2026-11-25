@@ -112,7 +112,7 @@ body.touch.playing #controls{display:none!important}
 <div id="lb" class="screen hidden">
   <div class="orn"><svg class="mug" viewBox="0 0 34 36" aria-hidden="true"><defs><linearGradient id="beerGb0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd35a"/><stop offset="1" stop-color="#d9861c"/></linearGradient></defs><path d="M24 13h4.5a3.5 3.5 0 0 1 3.5 3.5v6a3.5 3.5 0 0 1-3.5 3.5H24" fill="none" stroke="#2a1410" stroke-width="4.2" stroke-linecap="round"/><path d="M24 13h4.5a3.5 3.5 0 0 1 3.5 3.5v6a3.5 3.5 0 0 1-3.5 3.5H24" fill="none" stroke="#e9d9ae" stroke-width="2" stroke-linecap="round"/><rect x="4" y="9" width="21" height="25" rx="2.5" fill="url(#beerGb0)" stroke="#2a1410" stroke-width="1.8"/><rect x="7" y="13" width="3" height="17" rx="1.5" fill="#fff" opacity=".35"/><circle cx="16" cy="26" r="1" fill="#fff" opacity=".6"/><circle cx="19.5" cy="21" r=".9" fill="#fff" opacity=".6"/><circle cx="14" cy="18" r=".8" fill="#fff" opacity=".6"/><path d="M3.5 10.5c-.6-3 1.6-5.2 4.3-4.8c.8-2.4 4.6-3 6.3-.9c1.8-1.7 5.2-.9 5.9 1.7c2.6-.3 4.4 1.8 3.9 4.2z" fill="#fff8e2" stroke="#2a1410" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="mug" viewBox="0 0 34 36" aria-hidden="true"><defs><linearGradient id="beerGb1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd35a"/><stop offset="1" stop-color="#d9861c"/></linearGradient></defs><path d="M24 13h4.5a3.5 3.5 0 0 1 3.5 3.5v6a3.5 3.5 0 0 1-3.5 3.5H24" fill="none" stroke="#2a1410" stroke-width="4.2" stroke-linecap="round"/><path d="M24 13h4.5a3.5 3.5 0 0 1 3.5 3.5v6a3.5 3.5 0 0 1-3.5 3.5H24" fill="none" stroke="#e9d9ae" stroke-width="2" stroke-linecap="round"/><rect x="4" y="9" width="21" height="25" rx="2.5" fill="url(#beerGb1)" stroke="#2a1410" stroke-width="1.8"/><rect x="7" y="13" width="3" height="17" rx="1.5" fill="#fff" opacity=".35"/><circle cx="16" cy="26" r="1" fill="#fff" opacity=".6"/><circle cx="19.5" cy="21" r=".9" fill="#fff" opacity=".6"/><circle cx="14" cy="18" r=".8" fill="#fff" opacity=".6"/><path d="M3.5 10.5c-.6-3 1.6-5.2 4.3-4.8c.8-2.4 4.6-3 6.3-.9c1.8-1.7 5.2-.9 5.9 1.7c2.6-.3 4.4 1.8 3.9 4.2z" fill="#fff8e2" stroke="#2a1410" stroke-width="1.6" stroke-linejoin="round"/></svg><svg class="mug" viewBox="0 0 34 36" aria-hidden="true"><defs><linearGradient id="beerGb2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd35a"/><stop offset="1" stop-color="#d9861c"/></linearGradient></defs><path d="M24 13h4.5a3.5 3.5 0 0 1 3.5 3.5v6a3.5 3.5 0 0 1-3.5 3.5H24" fill="none" stroke="#2a1410" stroke-width="4.2" stroke-linecap="round"/><path d="M24 13h4.5a3.5 3.5 0 0 1 3.5 3.5v6a3.5 3.5 0 0 1-3.5 3.5H24" fill="none" stroke="#e9d9ae" stroke-width="2" stroke-linecap="round"/><rect x="4" y="9" width="21" height="25" rx="2.5" fill="url(#beerGb2)" stroke="#2a1410" stroke-width="1.8"/><rect x="7" y="13" width="3" height="17" rx="1.5" fill="#fff" opacity=".35"/><circle cx="16" cy="26" r="1" fill="#fff" opacity=".6"/><circle cx="19.5" cy="21" r=".9" fill="#fff" opacity=".6"/><circle cx="14" cy="18" r=".8" fill="#fff" opacity=".6"/><path d="M3.5 10.5c-.6-3 1.6-5.2 4.3-4.8c.8-2.4 4.6-3 6.3-.9c1.8-1.7 5.2-.9 5.9 1.7c2.6-.3 4.4 1.8 3.9 4.2z" fill="#fff8e2" stroke="#2a1410" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
   <h1>BESTENLISTE</h1>
-  <p class="sub">Platzierung nach erreichten Metern &ndash; auf diesem Gerät</p>
+  <p class="sub" id="lbSub">Platzierung nach erreichten Metern &ndash; weltweit</p>
   <div id="lbWrap"><table id="lbTable"><thead><tr><th>Platz</th><th style="text-align:left">Spitzname</th><th>Meter</th><th>Wachen</th><th>Münzen</th></tr></thead><tbody id="lbBody"></tbody></table></div>
   <button id="lbClose" class="btn">Schließen</button>
 </div>
@@ -1972,14 +1972,15 @@ function rankText(name){
   if(i<0)return '';
   return 'Platz '+(i+1)+' von '+lb.length+(lastSave&&lastSave.changed?'':'  ·  Bestwert bleibt bestehen');
 }
-function renderLB(mine){
+function renderLB(mine,list){
+  list=list||lb;
   const body=document.getElementById('lbBody');body.textContent='';
-  if(!lb.length){
+  if(!list.length){
     const tr=document.createElement('tr'),td=document.createElement('td');
     td.colSpan=5;td.style.opacity='.7';td.style.padding='18px';td.textContent='Noch keine Einträge – wag die erste Jagd.';
     tr.appendChild(td);body.appendChild(tr);return;
   }
-  lb.slice(0,LB_MAX).forEach((e,i)=>{
+  list.slice(0,LB_MAX).forEach((e,i)=>{
     const tr=document.createElement('tr');
     if(mine&&e.n.toLowerCase()===mine.toLowerCase())tr.className='me';
     [[i+1,''],[e.n,'n'],[e.m+' m',''],[e.k,''],[e.c,'']].forEach(([v,c])=>{
@@ -1992,10 +1993,45 @@ function renderLB(mine){
 }
 const lbEl=document.getElementById('lb'),nickEl=document.getElementById('nick'),nick2El=document.getElementById('nick2');
 let lbFrom=null;
+/* ---- Weltweite Bestenliste (Netlify Function /api/scores) ---- */
+const API='/api/scores';
+let gb=null;
+async function fetchGlobal(){
+  try{
+    const r=await fetch(API,{cache:'no-store'});
+    if(!r.ok)throw 0;
+    const d=await r.json();
+    gb=Array.isArray(d.top)?d.top.filter(e=>e&&typeof e.n==='string'&&isFinite(e.m)):null;
+  }catch(e){gb=null;}
+  return gb;
+}
+async function submitGlobal(name,run){
+  try{
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({n:name,m:run.m,k:run.k,c:run.c})});
+    if(!r.ok)throw 0;
+    return await r.json();
+  }catch(e){return null;}
+}
+function globalRank(name,run){
+  const el=document.getElementById('rankLine');
+  if(!nick){el.textContent=rankText(name)+'  \u00b7  Spitzname eingeben f\u00fcr die weltweite Liste';return;}
+  submitGlobal(name,run).then(d=>{
+    if(!d||!d.rank||lastName.toLowerCase()!==name.toLowerCase())return;
+    el.textContent='Weltweit Platz '+d.rank+' von '+d.total+(d.changed?'':'  \u00b7  Bestwert bleibt bestehen');
+  });
+}
 function openLB(){
-  renderLB(state==='over'?lastName:(nick?cleanName(nick):''));
+  const mine=state==='over'?lastName:(nick?cleanName(nick):'');
+  const sub=document.getElementById('lbSub');
   lbFrom=(state==='over')?overEl:menuEl;
   lbEl.classList.remove('hidden');
+  sub.textContent='Platzierung nach erreichten Metern \u2013 wird geladen\u2026';
+  renderLB(mine,gb||lb);
+  fetchGlobal().then(g=>{
+    if(lbEl.classList.contains('hidden'))return;
+    if(g){sub.textContent='Platzierung nach erreichten Metern \u2013 weltweit';renderLB(mine,g);}
+    else{sub.textContent='Platzierung nach erreichten Metern \u2013 offline, nur dieses Ger\u00e4t';renderLB(mine,lb);}
+  });
 }
 function closeLB(){lbEl.classList.add('hidden');}
 nickEl.value=nick;nick2El.value=nick;
@@ -2007,6 +2043,7 @@ nick2El.addEventListener('change',()=>{
   if(nm.toLowerCase()===lastName.toLowerCase())return;
   undoSave();saveRun(nm,lastRun);lastName=nm;
   document.getElementById('rankLine').textContent=rankText(nm);
+  globalRank(nm,lastRun);
 });
 document.getElementById('lbBtn').addEventListener('click',()=>{audio();openLB();});
 document.getElementById('lbBtn2').addEventListener('click',()=>{audio();openLB();});
@@ -2042,6 +2079,7 @@ function gameOver(){
   saveRun(lastName,lastRun);
   nick2El.value=nick;
   document.getElementById('rankLine').textContent=rankText(lastName);
+  globalRank(lastName,lastRun);
   document.getElementById('deathMsg').textContent=deathMsg;
   document.getElementById('finalScore').textContent=score;
   document.getElementById('overTitle').textContent=rankTitle(score);
