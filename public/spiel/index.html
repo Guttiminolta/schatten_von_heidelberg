@@ -486,7 +486,7 @@ body:not(.playing) #btnPause{display:none}
       <ul>
         <li>Keine Cookies, kein Tracking, keine Werbung.</li>
         <li>Dein Spielstand (M&uuml;nzen, Figuren, Waffen, Rekord) bleibt in deinem Browser.</li>
-        <li>Die Biertafel gilt nur f&uuml;r dein Ger&auml;t &ndash; wir sammeln keine Spielergebnisse und Namen.</li>
+        <li>Die Biertafel ist weltweit: Wenn du einen Bierspitz eingibst, speichern wir ihn mit Bund, Metern, Wachen und M&uuml;nzen deiner besten Runde auf einem Server. Ohne Bierspitz wird nichts &uuml;bertragen.</li>
         <li>Du kannst alle Daten jederzeit selbst l&ouml;schen oder uns um Ausk&uuml;nfte bitten.</li>
       </ul>
       <h3>Hosting und Server-Protokolle</h3>
@@ -495,9 +495,11 @@ body:not(.playing) #btnPause{display:none}
       <h3>Schriftarten</h3>
       <p>Die Schriftarten, etwa die Fraktur-Schrift der &Uuml;berschriften und die Schreibschrift der Spr&uuml;che, sind direkt in das Spiel eingebaut. Beim Laden wird keine Verbindung zu Google oder anderen Schriftanbietern aufgebaut.</p>
       <h3>Spielstand im Browser</h3>
-      <p>Dein Bierspitz (Spitzname), die Farben deines Bundes samt Perkussion, deine M&uuml;nzen, freigeschaltete Figuren und Waffen, deine Auswahl, dein Rekord, die Eintr&auml;ge der Biertafel und ein paar Einstellungen (zum Beispiel, ob die Steuerungshinweise schon gezeigt wurden) speichert das Spiel im lokalen Speicher deines Browsers (localStorage). Diese Daten verlassen dein Ger&auml;t nicht. Du kannst sie jederzeit l&ouml;schen, indem du die Websitedaten in deinem Browser entfernst &ndash; dann sind auch deine M&uuml;nzen und freigeschalteten Figuren und Waffen weg.</p>
+      <p>Dein Bierspitz (Spitzname), die Farben deines Bundes samt Perkussion, deine M&uuml;nzen, freigeschaltete Figuren und Waffen, deine Auswahl, dein Rekord, die Eintr&auml;ge der Biertafel und ein paar Einstellungen (zum Beispiel, ob die Steuerungshinweise schon gezeigt wurden) speichert das Spiel im lokalen Speicher deines Browsers (localStorage). Diese Daten verlassen dein Ger&auml;t nicht &ndash; mit Ausnahme der Angaben f&uuml;r die weltweite Biertafel (siehe unten). Du kannst sie jederzeit l&ouml;schen, indem du die Websitedaten in deinem Browser entfernst &ndash; dann sind auch deine M&uuml;nzen und freigeschalteten Figuren und Waffen weg.</p>
       <h3>Biertafel</h3>
-      <p>Die Biertafel ist eine reine Ger&auml;te-Rangliste: Bierspitz, Bund, Meter, Wachen und M&uuml;nzen deiner Runden werden nur lokal auf deinem Ger&auml;t gespeichert. Sie werden weder an uns noch an andere &uuml;bertragen und sind f&uuml;r andere Spieler nicht sichtbar. Bitte w&auml;hle trotzdem keinen Bierspitz, der dich f&uuml;r Fremde eindeutig erkennbar macht, falls du das Ger&auml;t teilst. Sollte es k&uuml;nftig eine gemeinsame Biertafel f&uuml;r alle Spieler geben, erg&auml;nzen wir diesen Text vorher und das Eintragen bleibt freiwillig.</p>
+      <p>Die Biertafel ist eine weltweite Rangliste. Wenn du einen Bierspitz eingetragen hast und eine Runde beendest, &uuml;bertr&auml;gt das Spiel Bierspitz, Bund (Farben und Perkussion), Meter, Wachen und M&uuml;nzen dieser Runde an unseren Server und speichert sie dort. Pro Bierspitz speichern wir nur die beste Runde. Die besten Eintr&auml;ge sind f&uuml;r alle Spieler sichtbar. Ohne eingetragenen Bierspitz (&bdquo;Anonym&ldquo;) wird nichts &uuml;bertragen und nichts gespeichert.</p>
+      <p>Die Speicherung erfolgt bei Netlify, Inc. (USA) im Dienst Netlify Blobs. Rechtsgrundlage ist dein freiwilliges Eintragen eines Bierspitzes (Art. 6 Abs. 1 lit. a DSGVO); du kannst die Einwilligung jederzeit f&uuml;r die Zukunft widerrufen. Wir speichern die Eintr&auml;ge, bis du die L&ouml;schung verlangst oder wir die Biertafel zur&uuml;cksetzen.</p>
+      <p>Bitte w&auml;hle keinen Klarnamen und keinen Bierspitz, der andere Personen erkennbar macht oder beleidigt. Unpassende Bierspitze werden automatisch abgelehnt oder von uns entfernt. Zum L&ouml;schen deines Eintrags schreib uns eine E-Mail an die oben genannte Adresse und nenne deinen Bierspitz.</p>
       <h3>Sprachausgabe</h3>
       <p>Die Kampfrufe nach besiegten Gegnern spricht die Sprachausgabe deines Ger&auml;ts beziehungsweise Browsers. Daf&uuml;r &uuml;bermitteln wir nichts an uns oder Dritte; wie die Sprachausgabe deines Ger&auml;ts intern arbeitet, liegt au&szlig;erhalb unseres Einflusses.</p>
       <h3>Deine Rechte</h3>
@@ -2713,6 +2715,7 @@ async function fetchGlobal(){
 async function submitGlobal(name,run){
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({n:name,m:run.m,k:run.k,c:run.c,f:flag,p:{t:perc.t,b:perc.b}})});
+    if(r.status===400){const e=await r.json().catch(()=>({}));return e&&e.error==='name'?{blocked:true}:null;}
     if(!r.ok)throw 0;
     return await r.json();
   }catch(e){return null;}
@@ -2721,6 +2724,7 @@ function globalRank(name,run){
   const el=document.getElementById('rankLine');
   if(!nick){el.textContent=rankText(name)+'  \u00b7  Spitzname eingeben f\u00fcr die weltweite Liste';return;}
   submitGlobal(name,run).then(d=>{
+    if(d&&d.blocked&&lastName.toLowerCase()===name.toLowerCase()){el.textContent='Dieser Bierspitz ist nicht erlaubt \u2013 bitte w\u00e4hle einen anderen.';return;}
     if(!d||!d.rank||lastName.toLowerCase()!==name.toLowerCase())return;
     el.textContent='Weltweit Platz '+d.rank+' von '+d.total+(d.changed?'':'  \u00b7  Bestwert bleibt bestehen');
   });

@@ -33,6 +33,40 @@ const cleanPerc = (p) => ({
   b: okPerc(p?.b) ? p.b : "none",
 });
 
+
+// ---- Namensfilter --------------------------------------------------------
+// Die Listen sind bewusst kurz und lassen sich unten beliebig erweitern.
+// Geprüft wird nach Normalisierung (Groß-/Kleinschreibung, Umlaute, Leetspeak wie "n4zi").
+const BLOCK_SUBSTR = [ // unmissverständlich, wird auch mitten im Namen erkannt
+  "nigger", "nigga", "hurensohn", "schwuchtel", "wichser", "fotze", "kanake",
+  "arschloch", "hitler", "heilhitler", "siegheil",
+];
+const BLOCK_PREFIX = ["arsch", "schwul", "spast", "scheiss"]; // Wortanfang, z. B. "Arschgeige"
+const BLOCK_EQUALS = [ // nur als ganzes Wort, damit z. B. "Nazim" oder "Minute" erlaubt bleiben
+  "fick", "ficker", "ficken", "fickt", "gay", "homo", "nazi", "nazis", "hure", "huren",
+  "nutte", "nutten", "spasti", "penis", "pimmel", "titten", "pussy", "schlampe", "neger",
+];
+// Eigene Namen oder Personen, die nicht in der Liste auftauchen sollen (ohne Leerzeichen,
+// Kleinbuchstaben, ohne Umlaute), z. B. ["maxmustermann"]
+const PROTECTED = [];
+
+const LEET = { "0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s", "!": "i", "|": "i" };
+const normalize = (s) =>
+  String(s ?? "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss")
+    .replace(/[0134578@$!|]/g, (ch) => LEET[ch]);
+
+export function isBlocked(name) {
+  const tokens = normalize(name).split(/[^a-z]+/).filter(Boolean);
+  const joined = tokens.join("");
+  if (BLOCK_SUBSTR.some((w) => joined.includes(w))) return true;
+  if (PROTECTED.some((w) => joined.includes(w))) return true;
+  return tokens.some((t) => BLOCK_EQUALS.includes(t) || BLOCK_PREFIX.some((w) => t.startsWith(w)));
+}
+
 const better = (a, b) => b.m - a.m || b.k - a.k || b.c - a.c;
 const keyOf = (name) => Buffer.from(name.toLowerCase()).toString("hex");
 
@@ -41,7 +75,7 @@ async function loadAll(store) {
   const entries = await Promise.all(
     blobs.slice(0, 1000).map((b) => store.get(b.key, { type: "json" }).catch(() => null))
   );
-  return entries.filter((e) => e && typeof e.n === "string").sort(better);
+  return entries.filter((e) => e && typeof e.n === "string" && !isBlocked(e.n)).sort(better);
 }
 
 export async function handle(req, store) {
@@ -63,6 +97,7 @@ export async function handle(req, store) {
       return json({ error: "bad json" }, 400);
     }
     const n = cleanName(b?.n);
+    if (n && isBlocked(n)) return json({ error: "name" }, 400);
     const m = num(b?.m, MAX_M);
     const k = num(b?.k, MAX_K);
     const c = num(b?.c, MAX_C);
